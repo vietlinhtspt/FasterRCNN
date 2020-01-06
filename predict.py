@@ -92,6 +92,7 @@ def do_evaluate(pred_config, output_file):
         logger.info("Evaluating {} ...".format(dataset))
         dataflows = [
             get_eval_dataflow(dataset, shard=k, num_shards=num_tower)
+            # for k in range(num_tower)]
             for k in range(1, num_tower + 1)]
         all_results = multithread_predict_dataflow(dataflows, graph_funcs)
         output = output_file + '-' + dataset
