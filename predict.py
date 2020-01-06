@@ -38,8 +38,10 @@ def do_visualize(model, model_path, nr_visualize=100, output_dir='output'):
         session_init=SmartInit(model_path),
         input_names=['image', 'gt_boxes', 'gt_labels'],
         output_names=[
-            'generate_{}_proposals/boxes'.format('fpn' if cfg.MODE_FPN else 'rpn'),
-            'generate_{}_proposals/scores'.format('fpn' if cfg.MODE_FPN else 'rpn'),
+            'generate_{}_proposals/boxes'.format(
+                'fpn' if cfg.MODE_FPN else 'rpn'),
+            'generate_{}_proposals/scores'.format(
+                'fpn' if cfg.MODE_FPN else 'rpn'),
             'fastrcnn_all_scores',
             'output/boxes',
             'output/scores',
@@ -54,14 +56,17 @@ def do_visualize(model, model_path, nr_visualize=100, output_dir='output'):
             img, gt_boxes, gt_labels = dp['image'], dp['gt_boxes'], dp['gt_labels']
 
             rpn_boxes, rpn_scores, all_scores, \
-                final_boxes, final_scores, final_labels = pred(img, gt_boxes, gt_labels)
+                final_boxes, final_scores, final_labels = pred(
+                    img, gt_boxes, gt_labels)
 
             # draw groundtruth boxes
             gt_viz = draw_annotation(img, gt_boxes, gt_labels)
             # draw best proposals for each groundtruth, to show recall
-            proposal_viz, good_proposals_ind = draw_proposal_recall(img, rpn_boxes, rpn_scores, gt_boxes)
+            proposal_viz, good_proposals_ind = draw_proposal_recall(
+                img, rpn_boxes, rpn_scores, gt_boxes)
             # draw the scores for the above proposals
-            score_viz = draw_predictions(img, rpn_boxes[good_proposals_ind], all_scores[good_proposals_ind])
+            score_viz = draw_predictions(
+                img, rpn_boxes[good_proposals_ind], all_scores[good_proposals_ind])
 
             results = [DetectionResult(*args) for args in
                        zip(final_boxes, final_scores, final_labels,
@@ -87,10 +92,11 @@ def do_evaluate(pred_config, output_file):
         logger.info("Evaluating {} ...".format(dataset))
         dataflows = [
             get_eval_dataflow(dataset, shard=k, num_shards=num_tower)
-            for k in range(num_tower)]
+            for k in range(1, num_tower + 1)]
         all_results = multithread_predict_dataflow(dataflows, graph_funcs)
         output = output_file + '-' + dataset
-        DatasetRegistry.get(dataset).eval_inference_results(all_results, output)
+        DatasetRegistry.get(dataset).eval_inference_results(
+            all_results, output)
 
 
 def do_predict(pred_func, input_file):
@@ -102,23 +108,28 @@ def do_predict(pred_func, input_file):
         final = draw_final_outputs(img, results)
     viz = np.concatenate((img, final), axis=1)
     cv2.imwrite("output.png", viz)
-    logger.info("Inference output for {} written to output.png".format(input_file))
+    logger.info(
+        "Inference output for {} written to output.png".format(input_file))
     tpviz.interactive_imshow(viz)
 
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('--load', help='load a model for evaluation.', required=True)
-    parser.add_argument('--visualize', action='store_true', help='visualize intermediate results')
+    parser.add_argument(
+        '--load', help='load a model for evaluation.', required=True)
+    parser.add_argument('--visualize', action='store_true',
+                        help='visualize intermediate results')
     parser.add_argument('--evaluate', help="Run evaluation. "
                                            "This argument is the path to the output json evaluation file")
     parser.add_argument('--predict', help="Run prediction on a given image. "
                                           "This argument is the path to the input image file", nargs='+')
-    parser.add_argument('--benchmark', action='store_true', help="Benchmark the speed of the model + postprocessing")
+    parser.add_argument('--benchmark', action='store_true',
+                        help="Benchmark the speed of the model + postprocessing")
     parser.add_argument('--config', help="A list of KEY=VALUE to overwrite those defined in config.py",
                         nargs='+')
     parser.add_argument('--output-pb', help='Save a model to .pb')
-    parser.add_argument('--output-serving', help='Save a model to serving file')
+    parser.add_argument('--output-serving',
+                        help='Save a model to serving file')
 
     args = parser.parse_args()
     if args.config:
@@ -148,9 +159,11 @@ if __name__ == '__main__':
             output_names=MODEL.get_inference_tensor_names()[1])
 
         if args.output_pb:
-            ModelExporter(predcfg).export_compact(args.output_pb, optimize=False)
+            ModelExporter(predcfg).export_compact(
+                args.output_pb, optimize=False)
         elif args.output_serving:
-            ModelExporter(predcfg).export_serving(args.output_serving, optimize=False)
+            ModelExporter(predcfg).export_serving(
+                args.output_serving, optimize=False)
 
         if args.predict:
             predictor = OfflinePredictor(predcfg)
@@ -158,6 +171,7 @@ if __name__ == '__main__':
                 do_predict(predictor, image_file)
         elif args.evaluate:
             assert args.evaluate.endswith('.json'), args.evaluate
+            #
             do_evaluate(predcfg, args.evaluate)
         elif args.benchmark:
             df = get_eval_dataflow(cfg.DATA.VAL[0])
