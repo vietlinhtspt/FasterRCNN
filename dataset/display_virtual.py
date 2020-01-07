@@ -88,6 +88,8 @@ def register_balloon(basedir):
         DatasetRegistry.register(name, lambda x=split: DisplayDemo(basedir, x))
         DatasetRegistry.register_metadata(
             name, "class_names", ["BG", "LabelID0", "LabelID1"])
+        print("vietlinhtspt:", DatasetRegistry.get_metadata(
+            datasets[0], "class_names"))
 
 
 if __name__ == "__main__":

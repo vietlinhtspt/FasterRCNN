@@ -252,14 +252,12 @@ def finalize_configs(is_training):
     # support single string (the typical case) as well
     if isinstance(_C.DATA.VAL, six.string_types):
         _C.DATA.VAL = (_C.DATA.VAL, )
-        print("Line 255: ", _C.DATA.VAL)
     if isinstance(_C.DATA.TRAIN, six.string_types):  # support single string
         _C.DATA.TRAIN = (_C.DATA.TRAIN, )
 
     # finalize dataset definitions ...
     from dataset import DatasetRegistry
-    datasets = list(_C.DATA.TRAIN) + list(_C.DATA.VAL)
-    print("Line 262:", datasets)
+    datasets = list(_C.DATA.TRAIN) + list(_C.DATA.VAL)  # ['train', 'val']
     # Key error
     _C.DATA.CLASS_NAMES = DatasetRegistry.get_metadata(
         datasets[0], "class_names")
