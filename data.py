@@ -435,6 +435,7 @@ if __name__ == "__main__":
     from config import finalize_configs
 
     finalize_configs(True)
+    print("Get train dataflow-----------------------------------------------------------------------------------")
     ds = get_train_dataflow()
     ds = PrintData(ds, 10)
     TestDataSpeed(ds, 100).start()
