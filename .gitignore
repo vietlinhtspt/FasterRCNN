@@ -4,3 +4,5 @@ balloon/
 __pycache__/
 
 data/
+
+data\.zip

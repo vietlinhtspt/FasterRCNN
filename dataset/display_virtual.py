@@ -75,7 +75,7 @@ class DisplayDemo(DatasetSplit):
                               int(temp[3]), int(temp[4])])
                 labels.append(int(temp[5][0]))
 
-            roidb["boxes"] = np.asarray(boxes, dtype=np.int32)
+            roidb["boxes"] = np.asarray(boxes, dtype=np.float32)
             roidb["class"] = np.array(labels)
             roidb["is_crowd"] = np.zeros((3, ), dtype=np.int8)
             ret.append(roidb)
