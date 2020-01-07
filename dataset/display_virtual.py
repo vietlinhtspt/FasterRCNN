@@ -84,7 +84,7 @@ class DisplayDemo(DatasetSplit):
 
 def register_balloon(basedir):
     for split in ["train", "val"]:
-        name = "display_" + split
+        name = split
         DatasetRegistry.register(name, lambda x=split: DisplayDemo(basedir, x))
         DatasetRegistry.register_metadata(
             name, "class_names", ["BG", "LabelID0", "LabelID1"])

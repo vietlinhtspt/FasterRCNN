@@ -101,7 +101,8 @@ _C.DATA.VAL = ('coco_val2017',)  # AKA minival2014
 
 # These two configs will be populated later inside `finalize_configs`.
 _C.DATA.NUM_CATEGORY = -1  # without the background class (e.g., 80 for COCO)
-_C.DATA.CLASS_NAMES = []  # NUM_CLASS (NUM_CATEGORY+1) strings, the first is "BG".
+# NUM_CLASS (NUM_CATEGORY+1) strings, the first is "BG".
+_C.DATA.CLASS_NAMES = []
 
 # whether the coordinates in your registered dataset are
 # absolute pixel values in range [0, W or H] or relative values in [0, 1]
@@ -121,9 +122,11 @@ _C.BACKBONE.WEIGHTS = ''
 
 _C.BACKBONE.RESNET_NUM_BLOCKS = [3, 4, 6, 3]     # for resnet50
 # RESNET_NUM_BLOCKS = [3, 4, 23, 3]    # for resnet101
-_C.BACKBONE.FREEZE_AFFINE = False   # do not train affine parameters inside norm layers
+# do not train affine parameters inside norm layers
+_C.BACKBONE.FREEZE_AFFINE = False
 _C.BACKBONE.NORM = 'FreezeBN'  # options: FreezeBN, SyncBN, GN, None
-_C.BACKBONE.FREEZE_AT = 2  # options: 0, 1, 2. How many stages in backbone to freeze (not training)
+# options: 0, 1, 2. How many stages in backbone to freeze (not training)
+_C.BACKBONE.FREEZE_AT = 2
 
 # Use a base model with TF-preferred padding mode,
 # which may pad more pixels on right/bottom than top/left.
@@ -138,11 +141,14 @@ _C.BACKBONE.STRIDE_1X1 = False  # True for MSRA models
 # schedule -----------------------
 _C.TRAIN.NUM_GPUS = None         # by default, will be set from code
 _C.TRAIN.WEIGHT_DECAY = 1e-4
-_C.TRAIN.BASE_LR = 1e-2  # defined for total batch size=8. Otherwise it will be adjusted automatically
+# defined for total batch size=8. Otherwise it will be adjusted automatically
+_C.TRAIN.BASE_LR = 1e-2
 _C.TRAIN.WARMUP = 1000   # in terms of iterations. This is not affected by #GPUs
-_C.TRAIN.WARMUP_INIT_LR = 1e-2 * 0.33  # defined for total batch size=8. Otherwise it will be adjusted automatically
+# defined for total batch size=8. Otherwise it will be adjusted automatically
+_C.TRAIN.WARMUP_INIT_LR = 1e-2 * 0.33
 _C.TRAIN.STEPS_PER_EPOCH = 500
-_C.TRAIN.STARTING_EPOCH = 1  # the first epoch to start with, useful to continue a training
+# the first epoch to start with, useful to continue a training
+_C.TRAIN.STARTING_EPOCH = 1
 
 # LR_SCHEDULE means equivalent steps when the total batch size is 8.
 # When the total bs!=8, the actual iterations to decrease learning rate, and
@@ -172,7 +178,8 @@ _C.RPN.NEGATIVE_ANCHOR_THRESH = 0.3
 
 # rpn training -------------------------
 _C.RPN.FG_RATIO = 0.5  # fg ratio among selected RPN anchors
-_C.RPN.BATCH_PER_IM = 256  # total (across FPN levels) number of anchors that are marked valid
+# total (across FPN levels) number of anchors that are marked valid
+_C.RPN.BATCH_PER_IM = 256
 _C.RPN.MIN_SIZE = 0
 _C.RPN.PROPOSAL_NMS_THRESH = 0.7
 # Anchors which overlap with a crowd box (IOA larger than threshold) will be ignored.
@@ -186,7 +193,8 @@ _C.RPN.HEAD_DIM = 1024      # used in C4 only
 _C.RPN.TRAIN_PRE_NMS_TOPK = 12000
 _C.RPN.TRAIN_POST_NMS_TOPK = 2000
 _C.RPN.TEST_PRE_NMS_TOPK = 6000
-_C.RPN.TEST_POST_NMS_TOPK = 1000   # if you encounter OOM in inference, set this to a smaller number
+# if you encounter OOM in inference, set this to a smaller number
+_C.RPN.TEST_POST_NMS_TOPK = 1000
 # for FPN, #proposals per-level and #proposals after merging are (for now) the same
 # if FPN.PROPOSAL_MODE = 'Joint', these options have no effect
 _C.RPN.TRAIN_PER_LEVEL_NMS_TOPK = 2000
@@ -194,12 +202,14 @@ _C.RPN.TEST_PER_LEVEL_NMS_TOPK = 1000
 
 # fastrcnn training ---------------------
 _C.FRCNN.BATCH_PER_IM = 512
-_C.FRCNN.BBOX_REG_WEIGHTS = [10., 10., 5., 5.]  # Slightly better setting: 20, 20, 10, 10
+# Slightly better setting: 20, 20, 10, 10
+_C.FRCNN.BBOX_REG_WEIGHTS = [10., 10., 5., 5.]
 _C.FRCNN.FG_THRESH = 0.5
 _C.FRCNN.FG_RATIO = 0.25  # fg ratio in a ROI batch
 
 # FPN -------------------------
-_C.FPN.ANCHOR_STRIDES = (4, 8, 16, 32, 64)  # strides for each FPN level. Must be the same length as ANCHOR_SIZES
+# strides for each FPN level. Must be the same length as ANCHOR_SIZES
+_C.FPN.ANCHOR_STRIDES = (4, 8, 16, 32, 64)
 _C.FPN.PROPOSAL_MODE = 'Level'  # 'Level', 'Joint'
 _C.FPN.NUM_CHANNEL = 256
 _C.FPN.NORM = 'None'  # 'None', 'GN'
@@ -208,16 +218,19 @@ _C.FPN.FRCNN_HEAD_FUNC = 'fastrcnn_2fc_head'
 # choices: fastrcnn_2fc_head, fastrcnn_4conv1fc_{,gn_}head
 _C.FPN.FRCNN_CONV_HEAD_DIM = 256
 _C.FPN.FRCNN_FC_HEAD_DIM = 1024
-_C.FPN.MRCNN_HEAD_FUNC = 'maskrcnn_up4conv_head'   # choices: maskrcnn_up4conv_{,gn_}head
+# choices: maskrcnn_up4conv_{,gn_}head
+_C.FPN.MRCNN_HEAD_FUNC = 'maskrcnn_up4conv_head'
 
 # Mask R-CNN
 _C.MRCNN.HEAD_DIM = 256
-_C.MRCNN.ACCURATE_PASTE = True  # slightly more aligned results, but very slow on numpy
+# slightly more aligned results, but very slow on numpy
+_C.MRCNN.ACCURATE_PASTE = True
 
 # Cascade R-CNN, only available in FPN mode
 _C.FPN.CASCADE = False
 _C.CASCADE.IOUS = [0.5, 0.6, 0.7]
-_C.CASCADE.BBOX_REG_WEIGHTS = [[10., 10., 5., 5.], [20., 20., 10., 10.], [30., 30., 15., 15.]]
+_C.CASCADE.BBOX_REG_WEIGHTS = [[10., 10., 5., 5.], [
+    20., 20., 10., 10.], [30., 30., 15., 15.]]
 
 # testing -----------------------
 _C.TEST.FRCNN_NMS_THRESH = 0.5
@@ -236,7 +249,8 @@ def finalize_configs(is_training):
     Run some sanity checks, and populate some configs from others
     """
     _C.freeze(False)  # populate new keys now
-    if isinstance(_C.DATA.VAL, six.string_types):  # support single string (the typical case) as well
+    # support single string (the typical case) as well
+    if isinstance(_C.DATA.VAL, six.string_types):
         _C.DATA.VAL = (_C.DATA.VAL, )
     if isinstance(_C.DATA.TRAIN, six.string_types):  # support single string
         _C.DATA.TRAIN = (_C.DATA.TRAIN, )
@@ -244,10 +258,13 @@ def finalize_configs(is_training):
     # finalize dataset definitions ...
     from dataset import DatasetRegistry
     datasets = list(_C.DATA.TRAIN) + list(_C.DATA.VAL)
-    _C.DATA.CLASS_NAMES = DatasetRegistry.get_metadata(datasets[0], "class_names")
+    # Key error
+    _C.DATA.CLASS_NAMES = DatasetRegistry.get_metadata(
+        datasets[0], "class_names")
     _C.DATA.NUM_CATEGORY = len(_C.DATA.CLASS_NAMES) - 1
 
-    assert _C.BACKBONE.NORM in ['FreezeBN', 'SyncBN', 'GN', 'None'], _C.BACKBONE.NORM
+    assert _C.BACKBONE.NORM in ['FreezeBN',
+                                'SyncBN', 'GN', 'None'], _C.BACKBONE.NORM
     if _C.BACKBONE.NORM != 'FreezeBN':
         assert not _C.BACKBONE.FREEZE_AFFINE
     assert _C.BACKBONE.FREEZE_AT in [0, 1, 2]
@@ -255,11 +272,13 @@ def finalize_configs(is_training):
     _C.RPN.NUM_ANCHOR = len(_C.RPN.ANCHOR_SIZES) * len(_C.RPN.ANCHOR_RATIOS)
     assert len(_C.FPN.ANCHOR_STRIDES) == len(_C.RPN.ANCHOR_SIZES)
     # image size into the backbone has to be multiple of this number
-    _C.FPN.RESOLUTION_REQUIREMENT = _C.FPN.ANCHOR_STRIDES[3]  # [3] because we build FPN with features r2,r3,r4,r5
+    # [3] because we build FPN with features r2,r3,r4,r5
+    _C.FPN.RESOLUTION_REQUIREMENT = _C.FPN.ANCHOR_STRIDES[3]
 
     if _C.MODE_FPN:
         size_mult = _C.FPN.RESOLUTION_REQUIREMENT * 1.
-        _C.PREPROC.MAX_SIZE = np.ceil(_C.PREPROC.MAX_SIZE / size_mult) * size_mult
+        _C.PREPROC.MAX_SIZE = np.ceil(
+            _C.PREPROC.MAX_SIZE / size_mult) * size_mult
         assert _C.FPN.PROPOSAL_MODE in ['Level', 'Joint']
         assert _C.FPN.FRCNN_HEAD_FUNC.endswith('_head')
         assert _C.FPN.MRCNN_HEAD_FUNC.endswith('_head')
@@ -286,7 +305,8 @@ def finalize_configs(is_training):
                     [180 * k - 120, 180 * k - 40, 180 * k]
                     for k in range(2, 10)}
                 LR_SCHEDULE_KITER["1x"] = [120, 160, 180]
-                _C.TRAIN.LR_SCHEDULE = [x * 1000 for x in LR_SCHEDULE_KITER[lr]]
+                _C.TRAIN.LR_SCHEDULE = [
+                    x * 1000 for x in LR_SCHEDULE_KITER[lr]]
             else:
                 _C.TRAIN.LR_SCHEDULE = eval(lr)
 
@@ -300,7 +320,8 @@ def finalize_configs(is_training):
             assert 'OMPI_COMM_WORLD_SIZE' not in os.environ
             ngpu = get_num_gpu()
         assert ngpu > 0, "Has to train with GPU!"
-        assert ngpu % 8 == 0 or 8 % ngpu == 0, "Can only train with 1,2,4 or >=8 GPUs, but found {} GPUs".format(ngpu)
+        assert ngpu % 8 == 0 or 8 % ngpu == 0, "Can only train with 1,2,4 or >=8 GPUs, but found {} GPUs".format(
+            ngpu)
     else:
         # autotune is too slow for inference
         os.environ['TF_CUDNN_USE_AUTOTUNE'] = '0'
