@@ -9,6 +9,7 @@ import six
 from tensorpack.utils import logger
 from tensorpack.utils.gpu import get_num_gpu
 
+from dataset.display_virtual import register_display
 __all__ = ['config', 'finalize_configs']
 
 
@@ -258,6 +259,8 @@ def finalize_configs(is_training):
     # finalize dataset definitions ...
     from dataset import DatasetRegistry
     datasets = list(_C.DATA.TRAIN) + list(_C.DATA.VAL)  # ['train', 'val']
+    # Fix bug key error because not register_metadata
+    register_display("./data")
     # Key error
     _C.DATA.CLASS_NAMES = DatasetRegistry.get_metadata(
         datasets[0], "class_names")

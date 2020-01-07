@@ -89,10 +89,11 @@ def register_display(basedir):
         DatasetRegistry.register_metadata(
             name, "class_names", ["BG", "LabelID0", "LabelID1"])
         print("vietlinhtspt:", DatasetRegistry.get_metadata(
-            datasets[0], "class_names"))
+            "train", "class_names"))
 
 
 if __name__ == "__main__":
     base_dir = '../data'
     roibds = DisplayDemo(base_dir, "train").training_roidbs()
     print("#images:", len(roibds))
+    register_display(base_dir)
