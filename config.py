@@ -259,7 +259,7 @@ def finalize_configs(is_training):
     # finalize dataset definitions ...
     from dataset import DatasetRegistry
     datasets = list(_C.DATA.TRAIN) + list(_C.DATA.VAL)  # ['train', 'val']
-    # Fix bug key error because not register_metadata
+    # Fix bug key error because not register_metadata(Config.py:Line:262 -> 263.)
     register_display("./data")
     # Key error
     _C.DATA.CLASS_NAMES = DatasetRegistry.get_metadata(
