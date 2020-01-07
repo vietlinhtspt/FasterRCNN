@@ -38,7 +38,8 @@ def print_class_histogram(roidbs):
     Args:
         roidbs (list[dict]): the same format as the output of `training_roidbs`.
     """
-    class_names = DatasetRegistry.get_metadata(cfg.DATA.TRAIN[0], 'class_names')
+    class_names = DatasetRegistry.get_metadata(
+        cfg.DATA.TRAIN[0], 'class_names')
     # labels are in [1, NUM_CATEGORY], hence +2 for bins
     hist_bins = np.arange(cfg.DATA.NUM_CATEGORY + 2)
 
@@ -51,15 +52,18 @@ def print_class_histogram(roidbs):
         if len(gt_classes):
             assert gt_classes.max() <= len(class_names) - 1
         gt_hist += np.histogram(gt_classes, bins=hist_bins)[0]
-    data = list(itertools.chain(*[[class_names[i + 1], v] for i, v in enumerate(gt_hist[1:])]))
+    data = list(itertools.chain(*[[class_names[i + 1], v]
+                                  for i, v in enumerate(gt_hist[1:])]))
     COL = min(6, len(data))
     total_instances = sum(data[1::2])
     data.extend([None] * ((COL - len(data) % COL) % COL))
     data.extend(["total", total_instances])
     data = itertools.zip_longest(*[data[i::COL] for i in range(COL)])
     # the first line is BG
-    table = tabulate(data, headers=["class", "#box"] * (COL // 2), tablefmt="pipe", stralign="center", numalign="left")
-    logger.info("Ground-Truth category distribution:\n" + colored(table, "cyan"))
+    table = tabulate(data, headers=["class", "#box"] * (COL // 2),
+                     tablefmt="pipe", stralign="center", numalign="left")
+    logger.info("Ground-Truth category distribution:\n" +
+                colored(table, "cyan"))
 
 
 class TrainingDataPreprocessor:
@@ -73,7 +77,8 @@ class TrainingDataPreprocessor:
     def __init__(self, cfg):
         self.cfg = cfg
         self.aug = imgaug.AugmentorList([
-            CustomResize(cfg.PREPROC.TRAIN_SHORT_EDGE_SIZE, cfg.PREPROC.MAX_SIZE),
+            CustomResize(cfg.PREPROC.TRAIN_SHORT_EDGE_SIZE,
+                         cfg.PREPROC.MAX_SIZE),
             imgaug.Flip(horiz=True)
         ])
 
@@ -107,44 +112,51 @@ class TrainingDataPreprocessor:
         # Add rpn data to dataflow:
         try:
             if self.cfg.MODE_FPN:
-                multilevel_anchor_inputs = self.get_multilevel_rpn_anchor_input(im, boxes, is_crowd)
+                multilevel_anchor_inputs = self.get_multilevel_rpn_anchor_input(
+                    im, boxes, is_crowd)
                 for i, (anchor_labels, anchor_boxes) in enumerate(multilevel_anchor_inputs):
                     ret["anchor_labels_lvl{}".format(i + 2)] = anchor_labels
                     ret["anchor_boxes_lvl{}".format(i + 2)] = anchor_boxes
             else:
-                ret["anchor_labels"], ret["anchor_boxes"] = self.get_rpn_anchor_input(im, boxes, is_crowd)
+                ret["anchor_labels"], ret["anchor_boxes"] = self.get_rpn_anchor_input(
+                    im, boxes, is_crowd)
 
             boxes = boxes[is_crowd == 0]  # skip crowd boxes in training target
             klass = klass[is_crowd == 0]
             ret["gt_boxes"] = boxes
             ret["gt_labels"] = klass
         except MalformedData as e:
-            log_once("Input {} is filtered for training: {}".format(fname, str(e)), "warn")
+            log_once("Input {} is filtered for training: {}".format(
+                fname, str(e)), "warn")
             return None
 
         if self.cfg.MODE_MASK:
             # augmentation will modify the polys in-place
             segmentation = copy.deepcopy(roidb["segmentation"])
-            segmentation = [segmentation[k] for k in range(len(segmentation)) if not is_crowd[k]]
+            segmentation = [segmentation[k]
+                            for k in range(len(segmentation)) if not is_crowd[k]]
             assert len(segmentation) == len(boxes)
 
             # Apply augmentation on polygon coordinates.
             # And produce one image-sized binary mask per box.
             masks = []
             width_height = np.asarray([width, height], dtype=np.float32)
-            gt_mask_width = int(np.ceil(im.shape[1] / 8.0) * 8)   # pad to 8 in order to pack mask into bits
+            # pad to 8 in order to pack mask into bits
+            gt_mask_width = int(np.ceil(im.shape[1] / 8.0) * 8)
 
             for polys in segmentation:
                 if not self.cfg.DATA.ABSOLUTE_COORD:
                     polys = [p * width_height for p in polys]
                 polys = [tfms.apply_coords(p) for p in polys]
-                masks.append(polygons_to_mask(polys, im.shape[0], gt_mask_width))
+                masks.append(polygons_to_mask(
+                    polys, im.shape[0], gt_mask_width))
 
             if len(masks):
                 masks = np.asarray(masks, dtype='uint8')    # values in {0, 1}
                 masks = np.packbits(masks, axis=-1)
             else:  # no gt on the image
-                masks = np.zeros((0, im.shape[0], gt_mask_width // 8), dtype='uint8')
+                masks = np.zeros(
+                    (0, im.shape[0], gt_mask_width // 8), dtype='uint8')
 
             ret['gt_masks_packed'] = masks
 
@@ -181,7 +193,8 @@ class TrainingDataPreprocessor:
         featuremap_anchors_flatten = all_anchors.reshape((-1, 4))
 
         # only use anchors inside the image
-        inside_ind, inside_anchors = filter_boxes_inside_shape(featuremap_anchors_flatten, im.shape[:2])
+        inside_ind, inside_anchors = filter_boxes_inside_shape(
+            featuremap_anchors_flatten, im.shape[:2])
         # obtain anchor labels and their corresponding gt boxes
         anchor_labels, anchor_gt_boxes = self.get_anchor_labels(
             inside_anchors, boxes[is_crowd == 0], boxes[is_crowd == 1]
@@ -190,12 +203,16 @@ class TrainingDataPreprocessor:
         # Fill them back to original size: fHxfWx1, fHxfWx4
         num_anchor = self.cfg.RPN.NUM_ANCHOR
         anchorH, anchorW = all_anchors.shape[:2]
-        featuremap_labels = -np.ones((anchorH * anchorW * num_anchor,), dtype="int32")
+        featuremap_labels = - \
+            np.ones((anchorH * anchorW * num_anchor,), dtype="int32")
         featuremap_labels[inside_ind] = anchor_labels
-        featuremap_labels = featuremap_labels.reshape((anchorH, anchorW, num_anchor))
-        featuremap_boxes = np.zeros((anchorH * anchorW * num_anchor, 4), dtype="float32")
+        featuremap_labels = featuremap_labels.reshape(
+            (anchorH, anchorW, num_anchor))
+        featuremap_boxes = np.zeros(
+            (anchorH * anchorW * num_anchor, 4), dtype="float32")
         featuremap_boxes[inside_ind, :] = anchor_gt_boxes
-        featuremap_boxes = featuremap_boxes.reshape((anchorH, anchorW, num_anchor, 4))
+        featuremap_boxes = featuremap_boxes.reshape(
+            (anchorH, anchorW, num_anchor, 4))
         return featuremap_labels, featuremap_boxes
 
     # TODO: can probably merge single-level logic with FPN logic to simplify code
@@ -220,10 +237,12 @@ class TrainingDataPreprocessor:
             ratios=self.cfg.RPN.ANCHOR_RATIOS,
             max_size=self.cfg.PREPROC.MAX_SIZE,
         )
-        flatten_anchors_per_level = [k.reshape((-1, 4)) for k in anchors_per_level]
+        flatten_anchors_per_level = [
+            k.reshape((-1, 4)) for k in anchors_per_level]
         all_anchors_flatten = np.concatenate(flatten_anchors_per_level, axis=0)
 
-        inside_ind, inside_anchors = filter_boxes_inside_shape(all_anchors_flatten, im.shape[:2])
+        inside_ind, inside_anchors = filter_boxes_inside_shape(
+            all_anchors_flatten, im.shape[:2])
 
         anchor_labels, anchor_gt_boxes = self.get_anchor_labels(
             inside_anchors, boxes[is_crowd == 0], boxes[is_crowd == 1]
@@ -244,7 +263,8 @@ class TrainingDataPreprocessor:
             num_anchor_this_level = np.prod(anchor_shape)
             end = start + num_anchor_this_level
             multilevel_inputs.append(
-                (all_labels[start:end].reshape(anchor_shape), all_boxes[start:end, :].reshape(anchor_shape + (4,)))
+                (all_labels[start:end].reshape(anchor_shape),
+                 all_boxes[start:end, :].reshape(anchor_shape + (4,)))
             )
             start = end
         assert end == num_all_anchors, "{} != {}".format(end, num_all_anchors)
@@ -266,7 +286,8 @@ class TrainingDataPreprocessor:
         def filter_box_label(labels, value, max_num):
             curr_inds = np.where(labels == value)[0]
             if len(curr_inds) > max_num:
-                disable_inds = np.random.choice(curr_inds, size=(len(curr_inds) - max_num), replace=False)
+                disable_inds = np.random.choice(curr_inds, size=(
+                    len(curr_inds) - max_num), replace=False)
                 labels[disable_inds] = -1  # ignore them
                 curr_inds = np.where(labels == value)[0]
             return curr_inds
@@ -290,15 +311,18 @@ class TrainingDataPreprocessor:
 
         # the order of setting neg/pos labels matter
         anchor_labels[anchors_with_max_iou_per_gt] = 1
-        anchor_labels[ious_max_per_anchor >= self.cfg.RPN.POSITIVE_ANCHOR_THRESH] = 1
-        anchor_labels[ious_max_per_anchor < self.cfg.RPN.NEGATIVE_ANCHOR_THRESH] = 0
+        anchor_labels[ious_max_per_anchor >=
+                      self.cfg.RPN.POSITIVE_ANCHOR_THRESH] = 1
+        anchor_labels[ious_max_per_anchor <
+                      self.cfg.RPN.NEGATIVE_ANCHOR_THRESH] = 0
 
         # label all non-ignore candidate boxes which overlap crowd as ignore
         if crowd_boxes.size > 0:
             cand_inds = np.where(anchor_labels >= 0)[0]
             cand_anchors = anchors[cand_inds]
             ioas = np_ioa(crowd_boxes, cand_anchors)
-            overlap_with_crowd = cand_inds[ioas.max(axis=0) > self.cfg.RPN.CROWD_OVERLAP_THRESH]
+            overlap_with_crowd = cand_inds[ioas.max(
+                axis=0) > self.cfg.RPN.CROWD_OVERLAP_THRESH]
             anchor_labels[overlap_with_crowd] = -1
 
         # Subsample fg labels: ignore some fg if fg is too many
@@ -314,7 +338,8 @@ class TrainingDataPreprocessor:
             # No valid bg in this image, skip.
             raise MalformedData("No valid background for RPN!")
         target_num_bg = self.cfg.RPN.BATCH_PER_IM - len(fg_inds)
-        filter_box_label(anchor_labels, 0, target_num_bg)  # ignore return values
+        # ignore return values
+        filter_box_label(anchor_labels, 0, target_num_bg)
 
         # Set anchor boxes: the best gt_box for each fg anchor
         anchor_boxes = np.zeros((NA, 4), dtype="float32")
@@ -339,13 +364,16 @@ def get_train_dataflow():
 
     If MODE_MASK, gt_masks: (N, h, w)
     """
-    roidbs = list(itertools.chain.from_iterable(DatasetRegistry.get(x).training_roidbs() for x in cfg.DATA.TRAIN))
+    roidbs = list(itertools.chain.from_iterable(
+        DatasetRegistry.get(x).training_roidbs() for x in cfg.DATA.TRAIN))
+    print("---------------------------------------------------------------- data.py:343")
     print_class_histogram(roidbs)
 
     # Filter out images that have no gt boxes, but this filter shall not be applied for testing.
     # The model does support training with empty images, but it is not useful for COCO.
     num = len(roidbs)
-    roidbs = list(filter(lambda img: len(img["boxes"][img["is_crowd"] == 0]) > 0, roidbs))
+    roidbs = list(filter(lambda img: len(
+        img["boxes"][img["is_crowd"] == 0]) > 0, roidbs))
     logger.info(
         "Filtered {} images which contain no non-crowd groudtruth boxes. Total #images for training: {}".format(
             num - len(roidbs), len(roidbs)
@@ -358,12 +386,15 @@ def get_train_dataflow():
 
     if cfg.DATA.NUM_WORKERS > 0:
         if cfg.TRAINER == "horovod":
-            buffer_size = cfg.DATA.NUM_WORKERS * 10  # one dataflow for each process, therefore don't need large buffer
-            ds = MultiThreadMapData(ds, cfg.DATA.NUM_WORKERS, preprocess, buffer_size=buffer_size)
+            # one dataflow for each process, therefore don't need large buffer
+            buffer_size = cfg.DATA.NUM_WORKERS * 10
+            ds = MultiThreadMapData(
+                ds, cfg.DATA.NUM_WORKERS, preprocess, buffer_size=buffer_size)
             # MPI does not like fork()
         else:
             buffer_size = cfg.DATA.NUM_WORKERS * 20
-            ds = MultiProcessMapData(ds, cfg.DATA.NUM_WORKERS, preprocess, buffer_size=buffer_size)
+            ds = MultiProcessMapData(
+                ds, cfg.DATA.NUM_WORKERS, preprocess, buffer_size=buffer_size)
     else:
         ds = MapData(ds, preprocess)
     return ds
@@ -380,10 +411,12 @@ def get_eval_dataflow(name, shard=0, num_shards=1):
 
     num_imgs = len(roidbs)
     img_per_shard = num_imgs // num_shards
-    img_range = (shard * img_per_shard, (shard + 1) * img_per_shard if shard + 1 < num_shards else num_imgs)
+    img_range = (shard * img_per_shard, (shard + 1) *
+                 img_per_shard if shard + 1 < num_shards else num_imgs)
 
     # no filter for training
-    ds = DataFromListOfDict(roidbs[img_range[0]: img_range[1]], ["file_name", "image_id"])
+    ds = DataFromListOfDict(roidbs[img_range[0]: img_range[1]], [
+                            "file_name", "image_id"])
 
     def f(fname):
         im = cv2.imread(fname, cv2.IMREAD_COLOR)
