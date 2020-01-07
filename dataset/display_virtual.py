@@ -82,7 +82,7 @@ class DisplayDemo(DatasetSplit):
         return ret
 
 
-def register_balloon(basedir):
+def register_display(basedir):
     for split in ["train", "val"]:
         name = split
         DatasetRegistry.register(name, lambda x=split: DisplayDemo(basedir, x))
