@@ -96,9 +96,9 @@ _C.MODE_FPN = True
 _C.DATA.BASEDIR = '/path/to/your/DATA/DIR'
 # All available dataset names are defined in `dataset/coco.py:register_coco`.
 # All TRAIN dataset will be concatenated for training.
-_C.DATA.TRAIN = ('coco_train2017',)   # i.e. trainval35k
+_C.DATA.TRAIN = ('train',)   # i.e. trainval35k
 # Each VAL dataset will be evaluated separately (instead of concatenated)
-_C.DATA.VAL = ('coco_val2017',)  # AKA minival2014
+_C.DATA.VAL = ('val',)  # AKA minival2014
 
 # These two configs will be populated later inside `finalize_configs`.
 _C.DATA.NUM_CATEGORY = -1  # without the background class (e.g., 80 for COCO)
@@ -260,8 +260,9 @@ def finalize_configs(is_training):
     from dataset import DatasetRegistry
     datasets = list(_C.DATA.TRAIN) + list(_C.DATA.VAL)  # ['train', 'val']
     # Fix bug key error because not register_metadata(Config.py:Line:262 -> 263.)
-    register_display("./data")
+    register_display('./data')
     # Key error
+    print(datasets[0], ":", "class_names")
     _C.DATA.CLASS_NAMES = DatasetRegistry.get_metadata(
         datasets[0], "class_names")
     _C.DATA.NUM_CATEGORY = len(_C.DATA.CLASS_NAMES) - 1

@@ -12,6 +12,7 @@ class DatasetSplit():
     To use your own dataset that's not in COCO format, write a subclass that
     implements the interfaces.
     """
+
     def training_roidbs(self):
         """
         Returns:
@@ -80,7 +81,8 @@ class DatasetRegistry():
             name (str): the name of the dataset split, e.g. "coco_train2017"
             func: a function which returns an instance of `DatasetSplit`
         """
-        assert name not in DatasetRegistry._registry, "Dataset {} was registered already!".format(name)
+        assert name not in DatasetRegistry._registry, "Dataset {} was registered already!".format(
+            name)
         DatasetRegistry._registry[name] = func
 
     @staticmethod
@@ -92,7 +94,8 @@ class DatasetRegistry():
         Returns:
             DatasetSplit
         """
-        assert name in DatasetRegistry._registry, "Dataset {} was not registered!".format(name)
+        assert name in DatasetRegistry._registry, "Dataset {} was not registered!".format(
+            name)
         return DatasetRegistry._registry[name]()
 
     @staticmethod
@@ -104,6 +107,7 @@ class DatasetRegistry():
             value: the value of the metadata
         """
         DatasetRegistry._metadata_registry[name][key] = value
+        print(name, ":", key, ":", value)
 
     @staticmethod
     def get_metadata(name, key):

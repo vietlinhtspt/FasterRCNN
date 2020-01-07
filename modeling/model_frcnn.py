@@ -67,7 +67,8 @@ def sample_fast_rcnn_targets(boxes, gt_boxes, gt_labels):
 
     def sample_fg_bg(iou):
         fg_mask = tf.cond(tf.shape(iou)[1] > 0,
-                          lambda: tf.reduce_max(iou, axis=1) >= cfg.FRCNN.FG_THRESH,
+                          lambda: tf.reduce_max(
+                              iou, axis=1) >= cfg.FRCNN.FG_THRESH,
                           lambda: tf.zeros([tf.shape(iou)[0]], dtype=tf.bool))
 
         fg_inds = tf.reshape(tf.where(fg_mask), [-1])
@@ -89,11 +90,13 @@ def sample_fast_rcnn_targets(boxes, gt_boxes, gt_labels):
     # fg,bg indices w.r.t proposals
 
     best_iou_ind = tf.cond(tf.shape(iou)[1] > 0,
-                           lambda: tf.argmax(iou, axis=1),   # #proposal, each in 0~m-1
+                           # #proposal, each in 0~m-1
+                           lambda: tf.argmax(iou, axis=1),
                            lambda: tf.zeros([tf.shape(iou)[0]], dtype=tf.int64))
     fg_inds_wrt_gt = tf.gather(best_iou_ind, fg_inds)   # num_fg
 
-    all_indices = tf.concat([fg_inds, bg_inds], axis=0)   # indices w.r.t all n+m proposal boxes
+    # indices w.r.t all n+m proposal boxes
+    all_indices = tf.concat([fg_inds, bg_inds], axis=0)
     ret_boxes = tf.gather(boxes, all_indices)
 
     ret_labels = tf.concat(
@@ -126,7 +129,8 @@ def fastrcnn_outputs(feature, num_categories, class_agnostic_regression=False):
     box_regression = FullyConnected(
         'box', feature, num_classes_for_box * 4,
         kernel_initializer=tf.random_normal_initializer(stddev=0.001))
-    box_regression = tf.reshape(box_regression, (-1, num_classes_for_box, 4), name='output_box')
+    box_regression = tf.reshape(
+        box_regression, (-1, num_classes_for_box, 4), name='output_box')
     return classification, box_regression
 
 
@@ -161,10 +165,12 @@ def fastrcnn_losses(labels, label_logits, fg_boxes, fg_box_logits):
 
     with tf.name_scope('label_metrics'), tf.device('/cpu:0'):
         prediction = tf.argmax(label_logits, axis=1, name='label_prediction')
-        correct = tf.cast(tf.equal(prediction, labels), tf.float32)  # boolean/integer gather is unavailable on GPU
+        # boolean/integer gather is unavailable on GPU
+        correct = tf.cast(tf.equal(prediction, labels), tf.float32)
         accuracy = tf.reduce_mean(correct, name='accuracy')
         fg_label_pred = tf.argmax(tf.gather(label_logits, fg_inds), axis=1)
-        num_zero = tf.reduce_sum(tf.cast(tf.equal(fg_label_pred, 0), tf.int64), name='num_zero')
+        num_zero = tf.reduce_sum(
+            tf.cast(tf.equal(fg_label_pred, 0), tf.int64), name='num_zero')
         false_negative = tf.where(
             empty_fg, 0., tf.cast(tf.truediv(num_zero, num_fg), tf.float32), name='false_negative')
         fg_accuracy = tf.where(
@@ -210,7 +216,8 @@ def fastrcnn_predictions(boxes, scores):
         cfg.TEST.RESULTS_PER_IM,
         cfg.TEST.FRCNN_NMS_THRESH)
     final_scores = tf.gather(filtered_scores, selection, name='scores')
-    final_labels = tf.add(tf.gather(cls_per_box[:, 0], selection), 1, name='labels')
+    final_labels = tf.add(
+        tf.gather(cls_per_box[:, 0], selection), 1, name='labels')
     final_boxes = tf.gather(filtered_boxes, selection, name='boxes')
     return final_boxes, final_scores, final_labels
 
@@ -231,8 +238,10 @@ def fastrcnn_2fc_head(feature):
     """
     dim = cfg.FPN.FRCNN_FC_HEAD_DIM
     init = tf.variance_scaling_initializer()
-    hidden = FullyConnected('fc6', feature, dim, kernel_initializer=init, activation=tf.nn.relu)
-    hidden = FullyConnected('fc7', hidden, dim, kernel_initializer=init, activation=tf.nn.relu)
+    hidden = FullyConnected('fc6', feature, dim,
+                            kernel_initializer=init, activation=tf.nn.relu)
+    hidden = FullyConnected(
+        'fc7', hidden, dim, kernel_initializer=init, activation=tf.nn.relu)
     return hidden
 
 
@@ -255,7 +264,8 @@ def fastrcnn_Xconv1fc_head(feature, num_convs, norm=None):
                       scale=2.0, mode='fan_out',
                       distribution='untruncated_normal' if get_tf_version_tuple() >= (1, 12) else 'normal')):
         for k in range(num_convs):
-            l = Conv2D('conv{}'.format(k), l, cfg.FPN.FRCNN_CONV_HEAD_DIM, 3, activation=tf.nn.relu)
+            l = Conv2D('conv{}'.format(k), l,
+                       cfg.FPN.FRCNN_CONV_HEAD_DIM, 3, activation=tf.nn.relu)
             if norm is not None:
                 l = GroupNorm('gn{}'.format(k), l)
         l = FullyConnected('fc', l, cfg.FPN.FRCNN_FC_HEAD_DIM,
@@ -275,6 +285,7 @@ class BoxProposals(object):
     """
     A structure to manage box proposals and their relations with ground truth.
     """
+
     def __init__(self, boxes, labels=None, fg_inds_wrt_gt=None):
         """
         Args:
@@ -308,6 +319,7 @@ class FastRCNNHead(object):
     """
     A class to process & decode inputs/outputs of a fastrcnn classification+regression head.
     """
+
     def __init__(self, proposals, box_logits, label_logits, gt_boxes, bbox_regression_weights):
         """
         Args:

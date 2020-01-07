@@ -83,6 +83,7 @@ class DisplayDemo(DatasetSplit):
 
 
 def register_display(basedir):
+    print("REGISTER")
     for split in ["train", "val"]:
         name = split
         DatasetRegistry.register(name, lambda x=split: DisplayDemo(basedir, x))

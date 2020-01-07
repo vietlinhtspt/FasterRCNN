@@ -29,20 +29,25 @@ if __name__ == '__main__':
     import multiprocessing as mp
     mp.set_start_method('spawn')
     parser = argparse.ArgumentParser()
-    parser.add_argument('--load', help='Load a model to start training from. It overwrites BACKBONE.WEIGHTS')
+    parser.add_argument(
+        '--load', help='Load a model to start training from. It overwrites BACKBONE.WEIGHTS')
     parser.add_argument('--logdir', help='Log directory. Will remove the old one if already exists.',
                         default='train_log/maskrcnn')
-    parser.add_argument('--config', help="A list of KEY=VALUE to overwrite those defined in config.py", nargs='+')
+    parser.add_argument(
+        '--config', help="A list of KEY=VALUE to overwrite those defined in config.py", nargs='+')
 
     if get_tf_version_tuple() < (1, 6):
         # https://github.com/tensorflow/tensorflow/issues/14657
-        logger.warn("TF<1.6 has a bug which may lead to crash in FasterRCNN if you're unlucky.")
+        logger.warn(
+            "TF<1.6 has a bug which may lead to crash in FasterRCNN if you're unlucky.")
 
     args = parser.parse_args()
     if args.config:
         cfg.update_args(args.config)
     register_coco(cfg.DATA.BASEDIR)  # add COCO datasets to the registry
-    register_balloon(cfg.DATA.BASEDIR)  # add the demo balloon datasets to the registry
+    # add the demo balloon datasets to the registry
+    register_balloon(cfg.DATA.BASEDIR)
+    # register_display(cfg.DATA.BASEDIR)
 
     # Setup logging ...
     is_horovod = cfg.TRAINER == 'horovod'
@@ -75,7 +80,8 @@ if __name__ == '__main__':
     train_dataflow = get_train_dataflow()
     # This is what's commonly referred to as "epochs"
     total_passes = cfg.TRAIN.LR_SCHEDULE[-1] * 8 / train_dataflow.size()
-    logger.info("Total passes of the training set is: {:.5g}".format(total_passes))
+    logger.info(
+        "Total passes of the training set is: {:.5g}".format(total_passes))
 
     # Create callbacks ...
     callbacks = [
@@ -95,7 +101,8 @@ if __name__ == '__main__':
     ]
     if cfg.TRAIN.EVAL_PERIOD > 0:
         callbacks.extend([
-            EvalCallback(dataset, *MODEL.get_inference_tensor_names(), args.logdir)
+            EvalCallback(
+                dataset, *MODEL.get_inference_tensor_names(), args.logdir)
             for dataset in cfg.DATA.VAL
         ])
 
@@ -122,5 +129,6 @@ if __name__ == '__main__':
         trainer = HorovodTrainer(average=False)
     else:
         # nccl mode appears faster than cpu mode
-        trainer = SyncMultiGPUTrainerReplicated(cfg.TRAIN.NUM_GPUS, average=False, mode='nccl')
+        trainer = SyncMultiGPUTrainerReplicated(
+            cfg.TRAIN.NUM_GPUS, average=False, mode='nccl')
     launch_train_with_config(traincfg, trainer)
