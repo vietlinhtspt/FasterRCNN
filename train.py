@@ -9,7 +9,7 @@ from tensorpack.tfutils import collect_env_info
 from tensorpack.tfutils.common import get_tf_version_tuple
 
 # from dataset import register_coco, register_balloon
-from dataset.display_virtual import register_balloon
+from dataset.display_virtual import register_display
 from config import config as cfg
 from config import finalize_configs
 from data import get_train_dataflow
