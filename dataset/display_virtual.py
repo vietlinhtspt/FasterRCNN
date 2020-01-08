@@ -76,7 +76,7 @@ class DisplayDemo(DatasetSplit):
                 labels.append(int(temp[5][0]))
 
             roidb["boxes"] = np.asarray(boxes, dtype=np.float32)
-            roidb["class"] = np.array(labels)
+            roidb["class"] = np.array(labels, dtype=np.int32)
             roidb["is_crowd"] = np.zeros((3, ), dtype=np.int8)
             ret.append(roidb)
         return ret
@@ -89,8 +89,6 @@ def register_display(basedir):
         DatasetRegistry.register(name, lambda x=split: DisplayDemo(basedir, x))
         DatasetRegistry.register_metadata(
             name, "class_names", ["BG", "LabelID0", "LabelID1"])
-        print("vietlinhtspt:", DatasetRegistry.get_metadata(
-            "train", "class_names"))
 
 
 if __name__ == "__main__":
@@ -98,3 +96,11 @@ if __name__ == "__main__":
     roibds = DisplayDemo(base_dir, "train").training_roidbs()
     print("#images:", len(roibds))
     register_display(base_dir)
+
+    from viz import draw_annotation
+    from tensorpack.utils.viz import interactive_imshow as imshow
+    import cv2
+    for r in roidbs:
+        im = cv2.imread(r["file_name"])
+        vis = draw_annotation(im, r["boxes"], r["class"])
+        imshow(vis)

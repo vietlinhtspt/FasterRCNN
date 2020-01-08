@@ -24,7 +24,10 @@ def draw_annotation(img, boxes, klass, polygons=None, is_crowd=None):
                 clsname += ';Crowd'
             labels.append(clsname)
     else:
+        print("viz.py:27-", klass)
         for cls in klass:
+            print(cls)
+            print(cfg.DATA.CLASS_NAMES)
             labels.append(cfg.DATA.CLASS_NAMES[cls])
     img = viz.draw_boxes(img, boxes, labels)
 
@@ -45,7 +48,8 @@ def draw_proposal_recall(img, proposals, proposal_scores, gt_boxes):
     """
     box_ious = np_iou(gt_boxes, proposals)    # ng x np
     box_ious_argsort = np.argsort(-box_ious, axis=1)
-    good_proposals_ind = box_ious_argsort[:, :3]   # for each gt, find 3 best proposals
+    # for each gt, find 3 best proposals
+    good_proposals_ind = box_ious_argsort[:, :3]
     good_proposals_ind = np.unique(good_proposals_ind.ravel())
 
     proposals = proposals[good_proposals_ind, :]
@@ -64,7 +68,8 @@ def draw_predictions(img, boxes, scores):
         return img
     labels = scores.argmax(axis=1)
     scores = scores.max(axis=1)
-    tags = ["{},{:.2f}".format(cfg.DATA.CLASS_NAMES[lb], score) for lb, score in zip(labels, scores)]
+    tags = ["{},{:.2f}".format(cfg.DATA.CLASS_NAMES[lb], score)
+            for lb, score in zip(labels, scores)]
     return viz.draw_boxes(img, boxes, tags)
 
 
@@ -116,7 +121,8 @@ def draw_final_outputs_blackwhite(img, results):
             m = m | (m2 > 0)
         img_bw[m] = img[m]
 
-    tags = ["{},{:.2f}".format(cfg.DATA.CLASS_NAMES[r.class_id], r.score) for r in results]
+    tags = ["{},{:.2f}".format(
+        cfg.DATA.CLASS_NAMES[r.class_id], r.score) for r in results]
     ret = viz.draw_boxes(img_bw, boxes, tags)
     return ret
 
