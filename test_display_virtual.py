@@ -9,6 +9,7 @@ if __name__ == '__main__':
     base_dir = './data'
     roibds = DisplayDemo(base_dir, "train").training_roidbs()
     print("#images:", len(roibds))
+    register_display(base_dir)
     finalize_configs(True)
 
     i = 0
