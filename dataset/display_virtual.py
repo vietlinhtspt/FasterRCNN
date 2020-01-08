@@ -73,7 +73,7 @@ class DisplayDemo(DatasetSplit):
                 temp = annotations[i + j].split(',')
                 boxes.append([int(temp[1]), int(temp[2]),
                               int(temp[3]), int(temp[4])])
-                labels.append(int(temp[5][0]))
+                labels.append(int(temp[5][0]) + 1)
 
             roidb["boxes"] = np.asarray(boxes, dtype=np.float32)
             roidb["class"] = np.array(labels, dtype=np.int32)
