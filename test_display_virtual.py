@@ -19,7 +19,7 @@ if __name__ == '__main__':
         if i == 100:
             break
         im = cv2.imread(r["file_name"])
-        im_out = os.path.join('./output', r["file_name"])
+        im_out = os.path.join('./output', r["file_name"].split('/')[-1])
         print(im_out)
         vis = draw_annotation(im, r["boxes"], r["class"])
         cv2.imwrite(im_out, vis)
