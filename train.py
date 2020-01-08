@@ -8,7 +8,8 @@ from tensorpack import *
 from tensorpack.tfutils import collect_env_info
 from tensorpack.tfutils.common import get_tf_version_tuple
 
-from dataset import register_coco, register_balloon
+# from dataset import register_coco, register_balloon
+from dataset.display_virtual import register_balloon
 from config import config as cfg
 from config import finalize_configs
 from data import get_train_dataflow
@@ -44,9 +45,9 @@ if __name__ == '__main__':
     args = parser.parse_args()
     if args.config:
         cfg.update_args(args.config)
-    register_coco(cfg.DATA.BASEDIR)  # add COCO datasets to the registry
+    # register_coco(cfg.DATA.BASEDIR)  # add COCO datasets to the registry
     # add the demo balloon datasets to the registry
-    register_balloon(cfg.DATA.BASEDIR)
+    # register_balloon(cfg.DATA.BASEDIR)
     register_display(cfg.DATA.BASEDIR)
 
     # Setup logging ...
