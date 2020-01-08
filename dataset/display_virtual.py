@@ -58,7 +58,7 @@ class DisplayDemo(DatasetSplit):
         txt_annotations = open(self.annotation_file, 'r')
         annotations = txt_annotations.readlines()
 
-        ret = []
+        self.ret = []
         for i in range(0, len(annotations), 3):
             temp = annotations[i].split(',')
             # file name image
@@ -78,8 +78,30 @@ class DisplayDemo(DatasetSplit):
             roidb["boxes"] = np.asarray(boxes, dtype=np.float32)
             roidb["class"] = np.array(labels, dtype=np.int32)
             roidb["is_crowd"] = np.zeros((3, ), dtype=np.int8)
-            ret.append(roidb)
-        return ret
+            self.ret.append(roidb)
+        return self.ret
+
+    def inference_roidbs(self):
+        txt_annotations = open(self.annotation_file, 'r')
+        annotations = txt_annotations.readlines()
+
+        self.ret = []
+        for i in range(0, len(annotations), 3):
+            temp = annotations[i].split(',')
+            # file name image
+            fname = temp[0]
+            # Create id = image name
+            fid = temp[0].split(".")[0]
+            # Create path
+            fname = os.path.join(self.imgdir, fname)
+            roidb = {"file_name": fname}
+            roidb["image_id"] = fid
+            print(roidb)
+            self.ret.append(roidb)
+        return self.ret
+    
+    def eval_inference_results(self, results, output=None):
+        print(results)
 
 
 def register_display(basedir):
@@ -97,10 +119,13 @@ if __name__ == "__main__":
     print("#images:", len(roibds))
     register_display(base_dir)
 
-    from viz import draw_annotation
-    from tensorpack.utils.viz import interactive_imshow as imshow
-    import cv2
-    for r in roidbs:
-        im = cv2.imread(r["file_name"])
-        vis = draw_annotation(im, r["boxes"], r["class"])
-        imshow(vis)
+    # # Draw data with box
+    # from viz import draw_annotation
+    # from tensorpack.utils.viz import interactive_imshow as imshow
+    # import cv2
+    # for r in roidbs:
+    #     im = cv2.imread(r["file_name"])
+    #     vis = draw_annotation(im, r["boxes"], r["class"])
+    #     imshow(vis)
+
+    DisplayDemo(base_dir, "val").inference_roidbs()

@@ -15,7 +15,11 @@ from tensorpack.tfutils import SmartInit, get_tf_version_tuple
 from tensorpack.tfutils.export import ModelExporter
 from tensorpack.utils import fs, logger
 
-from dataset import DatasetRegistry, register_coco, register_balloon
+from dataset.dataset import DatasetRegistry
+from dataset.coco import register_coco
+from dataset.balloon import register_balloon
+from dataset.display_virtual import register_display
+
 from config import config as cfg
 from config import finalize_configs
 from data import get_eval_dataflow, get_train_dataflow
@@ -103,6 +107,7 @@ def do_evaluate(pred_config, output_file):
 def do_predict(pred_func, input_file):
     img = cv2.imread(input_file, cv2.IMREAD_COLOR)
     results = predict_image(img, pred_func)
+    print("RESULTS: ", results)
     if cfg.MODE_MASK:
         final = draw_final_outputs_blackwhite(img, results)
     else:
@@ -137,6 +142,7 @@ if __name__ == '__main__':
         cfg.update_args(args.config)
     register_coco(cfg.DATA.BASEDIR)  # add COCO datasets to the registry
     register_balloon(cfg.DATA.BASEDIR)
+    register_display(cfg.DATA.BASEDIR)
 
     MODEL = ResNetFPNModel() if cfg.MODE_FPN else ResNetC4Model()
 
