@@ -170,9 +170,9 @@ _C.PREPROC.PIXEL_MEAN = [123.675, 116.28, 103.53]
 _C.PREPROC.PIXEL_STD = [58.395, 57.12, 57.375]
 
 # anchors -------------------------
-_C.RPN.ANCHOR_STRIDE = 16
-_C.RPN.ANCHOR_SIZES = (32, 64, 128, 256, 512)   # sqrtarea of the anchor box
-_C.RPN.ANCHOR_RATIOS = (0.5, 1., 2.)
+_C.RPN.ANCHOR_STRIDE = 1
+_C.RPN.ANCHOR_SIZES = (4, 8, 16, 32, 64)   # sqrtarea of the anchor box
+_C.RPN.ANCHOR_RATIOS = (0.12, 0.25, 0.5, 1., 2., 4., 8)
 _C.RPN.POSITIVE_ANCHOR_THRESH = 0.7
 _C.RPN.NEGATIVE_ANCHOR_THRESH = 0.3
 
@@ -185,7 +185,7 @@ _C.RPN.PROPOSAL_NMS_THRESH = 0.7
 # Anchors which overlap with a crowd box (IOA larger than threshold) will be ignored.
 # Setting this to a value larger than 1.0 will disable the feature.
 # It is disabled by default because Detectron does not do this.
-_C.RPN.CROWD_OVERLAP_THRESH = 9.99
+_C.RPN.CROWD_OVERLAP_THRESH = 1
 _C.RPN.HEAD_DIM = 1024      # used in C4 only
 
 # RPN proposal selection -------------------------------

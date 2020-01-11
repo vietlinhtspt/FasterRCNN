@@ -82,6 +82,7 @@ class DisplayDemo(DatasetSplit):
             roidb["boxes"] = np.asarray(boxes, dtype=np.float32)
             roidb["class"] = np.array(labels, dtype=np.int32)
             roidb["is_crowd"] = np.zeros((3, ), dtype=np.int8)
+            print(roidb)
             self.ret.append(roidb)
         return self.ret
 
@@ -100,7 +101,6 @@ class DisplayDemo(DatasetSplit):
             fname = os.path.join(self.imgdir, fname)
             roidb = {"file_name": fname}
             roidb["image_id"] = fid
-            print(roidb)
             self.ret.append(roidb)
         return self.ret
     
