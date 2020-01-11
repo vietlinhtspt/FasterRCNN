@@ -71,8 +71,12 @@ class DisplayDemo(DatasetSplit):
             # data in ground truth file has 3 line for each img
             for j in range(0, 3):
                 temp = annotations[i + j].split(',')
-                boxes.append([int(temp[1]) + 0.5, int(temp[2]) + 0.5,
-                              int(temp[3]) + 0.5, int(temp[4])] + 0.5)
+                x1 = int(temp[1]) + 0.5
+                y1 = int(temp[2]) + 0.5 
+                x2 = int(temp[3]) + 0.5
+                y2 = int(temp[4]) + 0.5
+                box = [x1, y1, x2, y2] 
+                boxes.append(box)
                 labels.append(int(temp[5][0]) + 1)
 
             roidb["boxes"] = np.asarray(boxes, dtype=np.float32)
