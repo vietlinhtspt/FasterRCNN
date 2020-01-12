@@ -110,7 +110,7 @@ _C.DATA.ABSOLUTE_COORD = True
 # Number of data loading workers.
 # In case of horovod training, this is the number of workers per-GPU (so you may want to use a smaller number).
 # Set to 0 to disable parallel data loading
-_C.DATA.NUM_WORKERS = 10
+_C.DATA.NUM_WORKERS = 3
 
 # backbone ----------------------
 _C.BACKBONE.WEIGHTS = ''
@@ -146,7 +146,7 @@ _C.TRAIN.BASE_LR = 1e-2
 _C.TRAIN.WARMUP = 1000   # in terms of iterations. This is not affected by #GPUs
 # defined for total batch size=8. Otherwise it will be adjusted automatically
 _C.TRAIN.WARMUP_INIT_LR = 1e-2 * 0.33
-_C.TRAIN.STEPS_PER_EPOCH = 500
+_C.TRAIN.STEPS_PER_EPOCH = 200
 # the first epoch to start with, useful to continue a training
 _C.TRAIN.STARTING_EPOCH = 1
 
@@ -233,13 +233,13 @@ _C.CASCADE.BBOX_REG_WEIGHTS = [[10., 10., 5., 5.], [
     20., 20., 10., 10.], [30., 30., 15., 15.]]
 
 # testing -----------------------
-_C.TEST.FRCNN_NMS_THRESH = 0.5
+_C.TEST.FRCNN_NMS_THRESH = 0.1
 
 # Smaller threshold value gives significantly better mAP. But we use 0.05 for consistency with Detectron.
 # mAP with 1e-4 threshold can be found at https://github.com/tensorpack/tensorpack/commit/26321ae58120af2568bdbf2269f32aa708d425a8#diff-61085c48abee915b584027e1085e1043  # noqa
-_C.TEST.RESULT_SCORE_THRESH = 0.05
-_C.TEST.RESULT_SCORE_THRESH_VIS = 0.5   # only visualize confident results
-_C.TEST.RESULTS_PER_IM = 100
+_C.TEST.RESULT_SCORE_THRESH = 0.01
+_C.TEST.RESULT_SCORE_THRESH_VIS = 0.04   # only visualize confident results
+_C.TEST.RESULTS_PER_IM = 10
 
 _C.freeze()  # avoid typo / wrong config keys
 
