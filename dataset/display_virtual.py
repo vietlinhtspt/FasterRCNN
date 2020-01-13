@@ -58,7 +58,7 @@ class DisplayDemo(DatasetSplit):
         txt_annotations = open(self.annotation_file, 'r')
         annotations = txt_annotations.readlines()
 
-        self.ret = []
+        self.roidbs = []
         for i in range(0, len(annotations), 3):
             temp = annotations[i].split(',')
             # file name image
@@ -82,9 +82,8 @@ class DisplayDemo(DatasetSplit):
             roidb["boxes"] = np.asarray(boxes, dtype=np.float32)
             roidb["class"] = np.array(labels, dtype=np.int32)
             roidb["is_crowd"] = np.zeros((3, ), dtype=np.int8)
-            print(roidb)
-            self.ret.append(roidb)
-        return self.ret
+            self.roidbs.append(roidb)
+        return self.roidbs
 
     def inference_roidbs(self):
         txt_annotations = open(self.annotation_file, 'r')
@@ -105,7 +104,81 @@ class DisplayDemo(DatasetSplit):
         return self.ret
     
     def eval_inference_results(self, results, output=None):
-        print(results)
+        """
+        Args:
+            results(list[dict]): result [{'image_id': '999', 
+                                        'category_id': 2, 
+                                        'bbox': [317.0448, 361.4742, 329.8792, 362.6593], 
+                                        'score': 0.0609}]
+        Returns:
+            dict: the evaluation metrics
+                Ex: {'IoU=0.5:0.95': , 'IoU=0.5': , 'IoU=0.75': , 'small': , 'medium': , 'large': }
+        """
+        base_dir = './data'
+        roibds = DisplayDemo(base_dir, "val").training_roidbs()
+        ret = []
+        j = 0
+        for i in range(0, len(results)):
+            if i < j:
+                continue
+            current = {'img_id': results[i]['image_id']}
+            current['file_name'] = results[i]['image_id'] + '.png'
+            current['pred_bbox'] = [results[i]['bbox']]
+            current['pred_cat'] = [results[i]['category_id']]
+            for j in range(i + 1, len(results)):
+                if results[j]['image_id'] == current['img_id']:
+                    current['pred_bbox'].append(results[j]['bbox'])
+                    current['pred_cat'].append(results[j]['category_id'])
+                else:
+                    break
+            ret.append(current)
+        del ret[-1]
+        """
+        {'img_id': '999', 
+        'file_name': '999.png', 
+        'pred_bbox': [[318.4033, 348.2516, 338.7042, 350.7122], 
+                    [332.0387, 344.1765, 333.4277, 358.5235], 
+                    [332.0427, 344.126, 333.4282, 358.557], 
+                    [317.3901, 356.4565, 337.6749, 358.8187], 
+                    [323.1426, 352.9561, 337.3448, 354.1138], 
+                    [328.0469, 344.8592, 329.3647, 356.6068], 
+                    [321.6028, 344.4802, 335.1993, 346.0248], 
+                    [323.4732, 348.8036, 337.4124, 349.9655], 
+                    [328.0892, 349.8138, 329.3959, 361.3584], 
+                    [319.6513, 352.7626, 332.4023, 354.0083]], 
+        'pred_cat': [2, 2, 1, 2, 2, 2, 2, 1, 1, 1]}
+        """
+        print("Ret length: ", len(ret))
+
+
+            
+
+
+
+    def calculate_iou(boxA, boxB):
+        # determine the (x, y)-coordinates of the intersection rectangle
+        xA = max(boxA[0], boxB[0])
+        yA = max(boxA[1], boxB[1])
+        xB = min(boxA[2], boxB[2])
+        yB = min(boxA[3], boxB[3])
+
+        # compute the area of intersection rectangle
+        interArea = abs(max((xB - xA, 0)) * max((yB - yA), 0))
+        if interArea == 0:
+            return 0
+        # compute the area of both the prediction and ground-truth
+        # rectangles
+        boxAArea = abs((boxA[2] - boxA[0]) * (boxA[3] - boxA[1]))
+        boxBArea = abs((boxB[2] - boxB[0]) * (boxB[3] - boxB[1]))
+
+        # compute the intersection over union by taking the intersection
+        # area and dividing it by the sum of prediction + ground-truth
+        # areas - the interesection area
+        iou = interArea / float(boxAArea + boxBArea - interArea)
+
+        # return the intersection over union value
+        return iou
+
 
 
 def register_display(basedir):
@@ -115,6 +188,7 @@ def register_display(basedir):
         DatasetRegistry.register(name, lambda x=split: DisplayDemo(basedir, x))
         DatasetRegistry.register_metadata(
             name, "class_names", ["BG", "LabelID0", "LabelID1"])
+    
 
 
 if __name__ == "__main__":
