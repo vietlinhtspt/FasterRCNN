@@ -169,8 +169,6 @@ class DisplayDemo(DatasetSplit):
                     if i != pred_cat:
                         continue
                     true_box = list(result['bboxes'][i - 1])
-                    print(true_box, type(true_box))
-                    print(pred_box), type(pred_box)
                     iou = self.calculate_iou(list(pred_box), true_box)
                     if iou > max_iou:
                         max_iou = iou
@@ -193,10 +191,15 @@ class DisplayDemo(DatasetSplit):
                     ap.append(precision[-1])
 
             mAP = sum(ap) / len(ap)
+            print("[display_virtual.py:194] sum_mAP = ", sum(ap), "Length AP", len(ap))
             results[index]['mAP'] = mAP
-
             totalmAP = totalmAP + mAP
-            print("[Display_virtual.py:163]mAP.45: ", totalmAP/ len(results))
+        text_result = "[Display_virtual.py:197]mAP.45: {}".format(totalmAP/ len(results))
+        print(text_result)
+        # Write result to file
+        with open("./mAP.txt", "a") as file_mAP:
+            file_mAP.write(text_result)
+
 
         return {'mAP.45': totalmAP / len(results)}
         
