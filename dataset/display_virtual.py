@@ -161,7 +161,7 @@ class DisplayDemo(DatasetSplit):
                 'cat': array([1, 1, 1], dtype=int32)}
                 """
                 max_iou = 0
-                tf = []
+                tf=[]
                 ap = []
                 # Calculate IOU
                 for i in result['cat']:
@@ -176,13 +176,15 @@ class DisplayDemo(DatasetSplit):
                         max_iou = iou
                 ious.append(max_iou)
                 # Thresh IOU, update category detect
-                if iou > 0.45:
-                    tf[index] = 1
+                if max_iou > 0.45:
+                    tf.append(1)
                     recall_cat[pred_cat - 1] = 1
-                
-                precision.append(sum(precision) / len(precision))
+                else:
+                    tf.append(0)
+
+                precision.append(sum(tf) / len(tf))
                 recall.append(sum(recall_cat) / len(recall_cat))
-                if iou < 0.45:
+                if max_iou < 0.45:
                     if len(ap) != 0:
                         ap.append(ap[-1])
                     else:
