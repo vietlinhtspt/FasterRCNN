@@ -171,7 +171,7 @@ _C.PREPROC.PIXEL_STD = [58.395, 57.12, 57.375]
 
 # anchors -------------------------
 _C.RPN.ANCHOR_STRIDE = 1
-_C.RPN.ANCHOR_SIZES = (4, 8, 16, 32, 64)   # sqrtarea of the anchor box
+_C.RPN.ANCHOR_SIZES = (2, 4, 8, 16, 32)   # sqrtarea of the anchor box
 _C.RPN.ANCHOR_RATIOS = (0.12, 0.25, 0.5, 1., 2., 4., 8)
 _C.RPN.POSITIVE_ANCHOR_THRESH = 0.7
 _C.RPN.NEGATIVE_ANCHOR_THRESH = 0.3
@@ -233,12 +233,12 @@ _C.CASCADE.BBOX_REG_WEIGHTS = [[10., 10., 5., 5.], [
     20., 20., 10., 10.], [30., 30., 15., 15.]]
 
 # testing -----------------------
-_C.TEST.FRCNN_NMS_THRESH = 0.1
+_C.TEST.FRCNN_NMS_THRESH = 0.2
 
 # Smaller threshold value gives significantly better mAP. But we use 0.05 for consistency with Detectron.
 # mAP with 1e-4 threshold can be found at https://github.com/tensorpack/tensorpack/commit/26321ae58120af2568bdbf2269f32aa708d425a8#diff-61085c48abee915b584027e1085e1043  # noqa
 _C.TEST.RESULT_SCORE_THRESH = 0.01
-_C.TEST.RESULT_SCORE_THRESH_VIS = 0.04   # only visualize confident results
+_C.TEST.RESULT_SCORE_THRESH_VIS = 0.2   # only visualize confident results
 _C.TEST.RESULTS_PER_IM = 10
 
 _C.freeze()  # avoid typo / wrong config keys

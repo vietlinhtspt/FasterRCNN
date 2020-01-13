@@ -123,86 +123,102 @@ class DisplayDemo(DatasetSplit):
                          => mAP in all data val
         """
         results = self.preprocess_eval(results)
-        totalmAP = 0.0
-        for result in results:
-            # IOU
-            ious = []
-            # TP/FP => 1/0
-            tf = []
-            #----------------
-            precision = [0]
-            # Recall array 
-            recall_cat = np.zeros((len(result['cat'])))
-            print("RECALL CAT:", recall_cat)
-            recall = []
-            # AP
-            ap = []
-            #----------------
-            mAP = 0
-            
-            for index, pred_box in enumerate(result['pred_bboxes']):
-                """
-                {'img_id': '800', 
-                'file_name': '800.png', 
-                'pred_bboxes': [[391.9459, 472.2379, 416.1271, 475.0789], 
-                                [392.0215, 472.2295, 416.1203, 475.0655], 
-                                [401.8083, 469.5519, 404.1204, 480.1884], 
-                                [397.8314, 468.994, 399.9718, 479.4305], 
-                                [419.3113, 465.8, 420.6235, 477.5314], 
-                                [415.1623, 470.0681, 417.6579, 477.0067], 
-                                [397.0155, 469.1784, 407.322, 470.5516], 
-                                [419.3125, 465.8476, 420.6241, 477.5078], 
-                                [306.8225, 411.7572, 309.4693, 418.2742], 
-                                [401.8136, 469.5411, 404.1294, 480.1516]], 
-                                'pred_cat': [1, 2, 1, 1, 1, 1, 1, 2, 1, 2], 
-                'bboxes': array([[285.5, 411.5, 311.5, 417.5],
-                                [224.5, 331.5, 281.5, 341.5],
-                                [395.5, 469.5, 421.5, 475.5]], dtype=float32), 
-                'cat': array([1, 1, 1], dtype=int32)}
-                """
-                max_iou = 0
-                tf=[]
-                ap = []
-                # Calculate IOU
-                for i in result['cat']:
-                    pred_cat = result['pred_cat'][index]
-                    if i != pred_cat:
-                        continue
-                    true_box = list(result['bboxes'][i - 1])
-                    iou = self.calculate_iou(list(pred_box), true_box)
-                    if iou > max_iou:
-                        max_iou = iou
-                ious.append(max_iou)
-                # Thresh IOU, update category detect
-                if max_iou > 0.45:
-                    tf.append(1)
-                    recall_cat[pred_cat - 1] = 1
-                else:
-                    tf.append(0)
-
-                precision.append(sum(tf) / len(tf))
-                recall.append(sum(recall_cat) / len(recall_cat))
-                if max_iou < 0.45:
-                    if len(ap) != 0:
-                        ap.append(ap[-1])
-                    else:
-                        ap = [0]
-                else:
-                    ap.append(precision[-1])
-
-            mAP = sum(ap) / len(ap)
-            print("[display_virtual.py:194] sum_mAP = ", sum(ap), "Length AP", len(ap))
-            results[index]['mAP'] = mAP
-            totalmAP = totalmAP + mAP
-        text_result = "[Display_virtual.py:197]mAP.45: {}".format(totalmAP/ len(results))
-        print(text_result)
-        # Write result to file
-        with open("./mAP.txt", "a") as file_mAP:
-            file_mAP.write(text_result)
-
-
-        return {'mAP.45': totalmAP / len(results)}
+        mAP45, mAP45_1, mAP45_2 = self.calculate_mAP(results, 0.45)
+        mAP75, mAP75_1, mAP75_2 = self.calculate_mAP(results, 0.75)
+        print("mAP45: ", mAP45)
+        print("mAP75: ", mAP75)
+        return {'IoU=0.45': mAP45, 'IoU=0.45_1': mAP45_1, 'IoU=0.45_1': mAP45_2, 'IoU=0.75': mAP75, 'IoU=0.75': mAP75_1, 'IoU=0.75': mAP75_2}
+    
+    def calculate_mAP(self, results, mAP_thresh):
+        total_AP = [0, 0]
+        num_total_AP = [0, 0] 
         
+        for result in results:
+            # remove duplicates from a List in Python.
+            num_categoty = list(dict.fromkeys(result['cat']))
+            img_totalmAP = 0.0
+            for category_id in num_categoty:
+                # IOU
+                ious = []
+                # TP/FP => 1/0
+                tf = []
+                #----------------
+                precision = []
+                # Recall array 
+                recall_cat = np.zeros((len(result['cat'])))
+                recall = []
+                # AP
+                ap = []
+                #----------------
+                mAP = 0.0
+                has_pred_bbox = False
+                for index, pred_box in enumerate(result['pred_bboxes']):
+                    """
+                    {'img_id': '800', 
+                    'file_name': '800.png', 
+                    'pred_bboxes': [[391.9459, 472.2379, 416.1271, 475.0789], 
+                                    [392.0215, 472.2295, 416.1203, 475.0655], 
+                                    [401.8083, 469.5519, 404.1204, 480.1884], 
+                                    [397.8314, 468.994, 399.9718, 479.4305], 
+                                    [419.3113, 465.8, 420.6235, 477.5314], 
+                                    [415.1623, 470.0681, 417.6579, 477.0067], 
+                                    [397.0155, 469.1784, 407.322, 470.5516], 
+                                    [419.3125, 465.8476, 420.6241, 477.5078], 
+                                    [306.8225, 411.7572, 309.4693, 418.2742], 
+                                    [401.8136, 469.5411, 404.1294, 480.1516]], 
+                                    'pred_cat': [1, 2, 1, 1, 1, 1, 1, 2, 1, 2], 
+                    'bboxes': array([[285.5, 411.5, 311.5, 417.5],
+                                    [224.5, 331.5, 281.5, 341.5],
+                                    [395.5, 469.5, 421.5, 475.5]], dtype=float32), 
+                    'cat': array([1, 1, 1], dtype=int32)}
+                    """
+                    # Check category
+                    pred_cat = result['pred_cat'][index]
+                    if category_id != pred_cat:
+                        continue
+                    has_pred_bbox = True
+                    # Calculate max IOU -> bbox 
+                    max_iou = 0
+                    for i, cat_id in enumerate(result['cat']):
+                        if cat_id != category_id:
+                            continue
+                        true_box = list(result['bboxes'][i - 1])
+                        iou = self.calculate_iou(list(pred_box), true_box)
+                        if iou > max_iou:
+                            max_iou = iou
+                    
+                    # Thresh IOU, update category detect
+                    if max_iou > mAP_thresh:
+                        tf.append(1)
+                        precision.append(sum(tf) / len(tf))
+                        ap.append(precision[-1])
+                    else:
+                        tf.append(0)
+                        precision.append(sum(tf) / len(tf))
+                        if len(ap) != 0:
+                            ap.append(ap[-1])
+                        else:
+                            ap.append(0)
+                if has_pred_bbox:
+                    mAP = sum(ap) / len(ap)
+                    img_totalmAP = img_totalmAP + mAP
+                    # Tinh mAP cho tung loai category
+                    # mAP cua category trong 1 anh
+                    total_AP[int(category_id) - 1] = total_AP[int(category_id) - 1] + mAP
+                    # So anh co mAP do
+                    num_total_AP[int(category_id) - 1] = num_total_AP[int(category_id) - 1] + 1
+
+        if num_total_AP[0] != 0:
+            mAP_1 = total_AP[0] / num_total_AP[0]
+        else:
+            mAP_1 = 0
+        if num_total_AP[0] != 0:
+            mAP_2 = total_AP[1] / num_total_AP[1]
+        else:
+             mAP_2 = 0
+        mAP_final = (mAP_1 + mAP_2) / 2
+        return mAP_final, mAP_1, mAP_2
+
     def preprocess_eval(self, results):
         """
         Args:
