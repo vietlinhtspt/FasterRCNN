@@ -1,0 +1,1 @@
+wget http://models.tensorpack.com/FasterRCNN/COCO-MaskRCNN-R101FPN1x.npz

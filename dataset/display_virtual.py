@@ -124,10 +124,7 @@ class DisplayDemo(DatasetSplit):
         """
         results = self.preprocess_eval(results)
         mAP45, mAP45_1, mAP45_2 = self.calculate_mAP(results, 0.45)
-        mAP75, mAP75_1, mAP75_2 = self.calculate_mAP(results, 0.75)
-        print("mAP45: ", mAP45)
-        print("mAP75: ", mAP75)
-        return {'IoU=0.45': mAP45, 'IoU=0.45_1': mAP45_1, 'IoU=0.45_1': mAP45_2, 'IoU=0.75': mAP75, 'IoU=0.75': mAP75_1, 'IoU=0.75': mAP75_2}
+        return {'IoU=0.45': mAP45, 'IoU=0.45_1': mAP45_1, 'IoU=0.45_2': mAP45_2}
     
     def calculate_mAP(self, results, mAP_thresh):
         total_AP = [0, 0]
